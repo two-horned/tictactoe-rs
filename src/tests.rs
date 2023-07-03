@@ -35,6 +35,15 @@ fn test_whowon() {
 }
 
 #[test]
+fn test_whowon2() {
+    let mut g = Game::new();
+    for i in [0, 2, 3, 6, 4, 5, 8] {
+        g.choose(i);
+    }
+    assert_eq!(1, g.whowon());
+}
+
+#[test]
 fn test_finished() {
     let mut g = Game::new();
     for i in [0, 1, 6, 4, 3] {
@@ -44,8 +53,16 @@ fn test_finished() {
 }
 
 #[test]
+fn test_finished2() {
+    let mut g = Game::new();
+    for i in [0, 2, 3, 6, 4, 5, 8] {
+        g.choose(i);
+    }
+    assert_eq!(true, g.is_finished());
+}
+
+#[test]
 fn final_test() {
-    let mut ev = Evaluater::new();
-    let g = ev.eval(&Game::new());
+    let g = Evaluater::new().eval(&Game::new());
     assert_eq!([0, 4, 1, 2, 6, 3, 5, 7, 8],g.history_array());
 }

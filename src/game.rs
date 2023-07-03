@@ -1,14 +1,21 @@
 use std::fmt;
 
 impl Game {
-    pub fn new() -> Game {
+    pub fn new() -> Self {
         Self { turn: 0, history: [9;9], board: [0;9] }
+    }
+
+    pub fn from(turn: usize, history: [usize;9], board: [i8;9]) -> Self {
+        Self { turn, history, board }
     }
     
     pub fn set_history(&mut self, history: [usize;9]) {
         self.history = history;
     }
 
+    pub fn set_board(&mut self, board: [i8;9]) {
+        self.board = board;
+    }
 
     pub fn history_vec(&self) -> Vec<usize> {
         let mut v = vec![];
@@ -58,7 +65,7 @@ impl Game {
         true
     }
 
-    pub fn loud_choose(&self, index: usize) -> Game {
+    pub fn loud_choose(&self, index: usize) -> Self {
         if 8 < index || self.board[index] != 0 {
             return *self;
         }
@@ -128,12 +135,39 @@ impl Game {
     }
 
     pub fn is_finished(&self) -> bool {
-        if self.turn == 9 || self.whowon() != 0 {
+        if self.turn > 8 || self.whowon() != 0 {
             return true;
         }
         false
     }
 
+}
+
+impl From<Vec<usize>> for Game {
+    fn from(history_vec: Vec<usize>) -> Self {
+        let mut history: [usize;9] = [9;9];
+        let mut board: [i8;9] = [0;9];
+        let mut turn = 0;
+        for i in history_vec {
+            history[turn] = i;
+            board[i] = if turn % 2 != 0 { -1 } else { 1 };
+            turn += 1;
+        }
+        Self { turn, history, board }
+    }
+}
+
+impl From<[usize;9]> for Game {
+    fn from(history: [usize;9]) -> Self {
+        let mut board: [i8;9] = [0;9];
+        let mut turn = 0;
+        for i in history {
+            if i > 8 { break; }
+            board[i] = if turn % 2 != 0 { -1 } else { 1 };
+            turn += 1;
+        }
+        Self { turn, history, board }
+    }
 }
 
 impl fmt::Display for Game {
