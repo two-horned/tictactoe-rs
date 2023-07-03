@@ -23,8 +23,8 @@ Redundant decisions can be pruned away immediately.
 Rust can be compiled with the release build which will lead to better peformance in most cases,
 due to certain cpu related optimiziations.
 
-|                   | Rust (recursive)  | Rust w/ release build (recursive)  | Python (recursive) | Python (iterative)  |
-|-------------------|-------------------|------------------------------------|---------- ---------|---------------------|
-| Starting position |  2.56 ms          | 456µs                              | 34.80 ms           | 60.41 ms            |
-
-
+|                   | Rust (recursive) | Rust w/ release (recursive) | Python (recursive) | Python (iterative) |
+|-------------------|------------------|-----------------------------|--------------------|--------------------|
+| Starting position | 2.56 ms          | 456µs                       | x ms               | x ms               |
+|                   |                  |                             |                    |                    |
+|                   |                  |                             |                    |                    |
