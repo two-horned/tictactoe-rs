@@ -25,5 +25,4 @@ due to certain cpu related optimiziations.
 
 |                   | Rust (recursive) | Rust w/ release (recursive) | Python (recursive) | Python (iterative) |
 |-------------------|------------------|-----------------------------|--------------------|--------------------|
-| Starting position | 2.56 ms          | 456µs                       | x ms               | x ms               |
-|                   |                  |                             |                    |                    |
+| Starting position | 2.56 ms          | 456µs                       | 34.80 ms           | 60.41 ms           |
