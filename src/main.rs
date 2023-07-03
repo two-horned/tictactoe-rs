@@ -80,7 +80,7 @@ fn bench() {
     let s = Instant::now();
     evaluater.eval(&g);
     let s = s.elapsed();
-    println!("Time needed to evaluate whole game tree: {}ms", s.as_millis());
+    println!("Time needed to evaluate whole game tree: {}µs", s.as_micros());
 }
 fn main() -> io::Result<()> {
     let arg = args().nth(1);
