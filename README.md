@@ -23,6 +23,6 @@ Redundant decisions can be pruned away immediately.
 
 |                   | Rust (recursive)  | Python (recursive) | Python (iterative)  |
 |-------------------|-------------------|--------------------|---------------------|
-| Starting position |  2.69 ms          | 34.80 ms           | 60.41 ms
+| Starting position |  2.56 ms          | 34.80 ms           | 60.41 ms
 
 
