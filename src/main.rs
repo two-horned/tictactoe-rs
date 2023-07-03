@@ -65,7 +65,6 @@ fn bot_play(game: &Game, evaluater: &mut Evaluater) -> io::Result<usize> {
     println!("Turn of bot");
     let gh = game.history_array();
     let nh = evaluater.eval(game).history_array();
-    println!("{:?}",nh);
     for i in 0..9 {
         if gh[i] == 9 {
             return Ok(nh[i])
@@ -81,8 +80,12 @@ fn bench() {
     evaluater.eval(&g);
     let s = s.elapsed();
     println!("Time needed to evaluate whole game tree: {}µs", s.as_micros());
-
 }
+
+fn bye() {
+    println!("Bye...");
+}
+
 fn main() -> io::Result<()> {
     let arg = args().nth(1);
     match arg {
@@ -96,10 +99,10 @@ fn main() -> io::Result<()> {
     println!("Enter 'q' to quit");
 
     let p = player()?;
-    if p == 0 { return Ok(()) };
+    if p == 0 { return Ok(bye()) };
 
     let b = botting()?;
-    if b == 0 { return Ok(()) };
+    if b == 0 { return Ok(bye()) };
     let b = b == -1;
 
     let mut g = Game::new();
@@ -108,7 +111,7 @@ fn main() -> io::Result<()> {
     while !g.is_finished() {
         if g.player() == p || b {
             e = player_play(&g)?;
-            if e == 9 { return Ok(()) };
+            if e == 9 { return Ok(bye()) };
         } else {
             e = bot_play(&g,&mut evaluater)?;
         }
@@ -119,6 +122,9 @@ fn main() -> io::Result<()> {
             break;
         }
     }
-
-    Ok(())
+    match g.whowon() {
+        1 => Ok(println!("Player 1 won!")),
+        0 => Ok(println!("Game ended in a draw!")),
+        _ => Ok(println!("Player 2 won!"))
+    }
 }
