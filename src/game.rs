@@ -125,11 +125,13 @@ impl Game {
     }
 
     pub fn whowon(&self) -> i8 {
-        let mut a = 0;
-        let mut b = 0;
+        let mut a;
+        let mut b;
         let mut c = 0;
         let mut d = 0;
         for i in 0..3 {
+            a = 0;
+            b = 0;
             for j in 0..3 {
                 a += self.board[3 * i + j];
                 b += self.board[3 * j + i];
@@ -142,8 +144,6 @@ impl Game {
             }
             c += self.board[4 * i];
             d += self.board[2 + 2 * i];
-            a = 0;
-            b = 0;
         }
         if c < -2 || c > 2 {
             return c.signum();
