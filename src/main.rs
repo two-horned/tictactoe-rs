@@ -1,8 +1,8 @@
 use std::env::args;
+use std::io::{self, Write};
 use std::time::Instant;
-use std::io::{self,Write};
-use tictactoe::game::Game;
 use tictactoe::evaluater::Evaluater;
+use tictactoe::game::Game;
 
 fn player() -> io::Result<i8> {
     let mut e;
@@ -31,7 +31,7 @@ fn botting() -> io::Result<i8> {
             "q" => return Ok(0),
             "y" => return Ok(1),
             "N" => return Ok(-1),
-            _ => ()
+            _ => (),
         }
     }
 }
@@ -55,7 +55,7 @@ fn player_play(game: &Game) -> io::Result<usize> {
             "7" => r = 6,
             "8" => r = 7,
             "9" => r = 8,
-            _ => ()
+            _ => (),
         }
     }
     Ok(r)
@@ -67,7 +67,7 @@ fn bot_play(game: &Game, evaluater: &mut Evaluater) -> io::Result<usize> {
     let nh = evaluater.eval(game).history_array();
     for i in 0..9 {
         if gh[i] == 9 {
-            return Ok(nh[i])
+            return Ok(nh[i]);
         }
     }
     unreachable!()
@@ -79,7 +79,10 @@ fn bench() {
     let s = Instant::now();
     evaluater.eval(&g);
     let s = s.elapsed();
-    println!("Time needed to evaluate whole game tree: {}µs", s.as_micros());
+    println!(
+        "Time needed to evaluate whole game tree: {}µs",
+        s.as_micros()
+    );
 }
 
 fn bye() {
@@ -90,8 +93,10 @@ fn main() -> io::Result<()> {
     let arg = args().nth(1);
     match arg {
         None => (),
-        Some(s) => if s == "bench" {
-            return Ok(bench());
+        Some(s) => {
+            if s == "bench" {
+                return Ok(bench());
+            }
         }
     }
 
@@ -99,10 +104,14 @@ fn main() -> io::Result<()> {
     println!("Enter 'q' to quit");
 
     let p = player()?;
-    if p == 0 { return Ok(bye()) };
+    if p == 0 {
+        return Ok(bye());
+    };
 
     let b = botting()?;
-    if b == 0 { return Ok(bye()) };
+    if b == 0 {
+        return Ok(bye());
+    };
     let b = b == -1;
 
     let mut g = Game::new();
@@ -111,11 +120,13 @@ fn main() -> io::Result<()> {
     while !g.is_finished() {
         if g.player() == p || b {
             e = player_play(&g)?;
-            if e == 9 { return Ok(bye()) };
+            if e == 9 {
+                return Ok(bye());
+            };
         } else {
-            e = bot_play(&g,&mut evaluater)?;
+            e = bot_play(&g, &mut evaluater)?;
         }
-        println!("Choice is: {}", e+1);
+        println!("Choice is: {}", e + 1);
         g.choose(e);
         println!("{}", &g);
         if g.whowon() != 0 {
@@ -125,6 +136,6 @@ fn main() -> io::Result<()> {
     match g.whowon() {
         1 => Ok(println!("Player 1 won!")),
         0 => Ok(println!("Game ended in a draw!")),
-        _ => Ok(println!("Player 2 won!"))
+        _ => Ok(println!("Player 2 won!")),
     }
 }

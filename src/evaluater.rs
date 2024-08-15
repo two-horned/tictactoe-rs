@@ -1,9 +1,11 @@
-use std::collections::HashMap;
 use crate::game::Game;
+use std::collections::HashMap;
 
 impl Evaluater {
     pub fn new() -> Evaluater {
-        Self { evaluated: HashMap::new() }
+        Self {
+            evaluated: HashMap::new(),
+        }
     }
 
     fn minmax(&mut self, player: i8, list: &Vec<Game>) -> Game {
@@ -45,7 +47,11 @@ impl Evaluater {
             let n = self.evaluated.get(&board).unwrap();
             let nh = n.history_array();
             let mut gh = game.history_array();
-            for i in 0..9 { if gh[i] > 8 { gh[i] = nh[i] } }
+            for i in 0..9 {
+                if gh[i] > 8 {
+                    gh[i] = nh[i]
+                }
+            }
             return Game::from(9, gh, n.board());
         }
         let free = game.symmshowfree();
@@ -59,12 +65,12 @@ impl Evaluater {
             }
             v.push(g);
         }
-        g = self.minmax(game.player(),&v);
+        g = self.minmax(game.player(), &v);
         self.evaluated.insert(board, g);
         return g;
     }
 }
 
 pub struct Evaluater {
-    evaluated: HashMap<[i8;9],Game>
+    evaluated: HashMap<[i8; 9], Game>,
 }
