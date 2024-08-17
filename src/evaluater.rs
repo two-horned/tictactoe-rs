@@ -14,25 +14,13 @@ impl Evaluater {
         if n.whowon() == player {
             return n;
         }
-        if player > 0 {
-            for i in list.iter().skip(1) {
-                g = self.eval(i);
-                if g.whowon() == 1 {
-                    return g;
-                }
-                if n.whowon() < g.whowon() {
-                    n = g;
-                }
+        for i in list.iter().skip(1) {
+            g = self.eval(i);
+            if g.whowon() == player {
+                return g;
             }
-        } else {
-            for i in list.iter().skip(1) {
-                g = self.eval(i);
-                if g.whowon() == -1 {
-                    return g;
-                }
-                if n.whowon() > g.whowon() {
-                    n = g;
-                }
+            if n.whowon() * player < g.whowon() * player {
+                n = g;
             }
         }
         n
