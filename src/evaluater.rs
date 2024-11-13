@@ -7,7 +7,7 @@ pub fn eval(game: Game) -> Game {
 
     for i in 0..9 {
         if free & 1 != 0 {
-            let n = eval(game.loud_choose(i));
+            let n = eval(game.unsafe_loud_choose(i));
             match best {
                 Some(x) if n.whowon() * player <= x.whowon() * player => (),
                 _ => best = Some(n),

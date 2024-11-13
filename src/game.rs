@@ -17,27 +17,6 @@ impl Game {
         }
     }
 
-    pub fn hash_board(&self) -> usize {
-        let mut hash = 0;
-        for i in 0..9 {
-            match self.board[i] {
-                1 => hash |= 1,
-                -1 => hash |= 2,
-                _ => (),
-            }
-            hash <<= 2;
-        }
-        hash
-    }
-
-    pub fn set_history(&mut self, history: [u8; 9]) {
-        self.history = history;
-    }
-
-    pub fn set_board(&mut self, board: [i8; 9]) {
-        self.board = board;
-    }
-
     pub fn history_vec(&self) -> Vec<u8> {
         self.history.into_iter().filter(|&x| x < 9).collect()
     }
@@ -50,19 +29,8 @@ impl Game {
         self.board
     }
 
-    pub fn board_2d(&self) -> [[i8; 3]; 3] {
-        let mut b = [[0; 3]; 3];
-        for i in 0..9 {
-            b[i / 3][i % 3] = self.board[i];
-        }
-        b
-    }
-
     pub fn player(&self) -> i8 {
-        if (self.turn % 2) != 0 {
-            return -1;
-        }
-        1
+        1 - ((self.turn as i8 & 1) << 1)
     }
 
     pub fn pseudo_choose(&self, index: usize) -> bool {
@@ -79,10 +47,7 @@ impl Game {
         true
     }
 
-    pub fn loud_choose(&self, index: usize) -> Self {
-        if 8 < index || self.board[index] != 0 {
-            return *self;
-        }
+    pub fn unsafe_loud_choose(&self, index: usize) -> Self {
         let mut history = self.history;
         let mut board = self.board;
         history[self.turn as usize] = index as u8;
