@@ -25,7 +25,7 @@ impl Game {
     }
 
     pub fn turn(&self) -> usize {
-        self.turn
+        self.turn as usize
     }
 
     pub fn pseudo_choose(&self, index: usize) -> bool {
@@ -44,12 +44,12 @@ impl Game {
 
     pub fn unsafe_choose(&mut self, index: usize) {
         self.player[(self.turn & 1) as usize] |= 1 << index;
-        self.history[self.turn] = index as u8;
+        self.history[self.turn as usize] = index as u8;
         self.update_whowon();
         self.turn += 1;
     }
 
-    pub fn showfree(&self) -> usize {
+    pub fn showfree(&self) -> u16 {
         if !self.is_finished() {
             !(self.player[0] | self.player[1])
         } else {
@@ -57,7 +57,7 @@ impl Game {
         }
     }
 
-    pub fn symmshowfree(&self) -> usize {
+    pub fn symmshowfree(&self) -> u16 {
         let mut free = self.showfree();
         if self.player[0] >> 6 == 0x7 & self.player[0]
             && self.player[1] >> 6 == 0x7 & self.player[1]
@@ -119,7 +119,7 @@ impl Game {
     }
 
     pub fn whowon(&self) -> isize {
-        self.whowon
+        self.whowon as isize
     }
 
     pub fn is_finished(&self) -> bool {
@@ -149,8 +149,8 @@ impl fmt::Display for Game {
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Game {
-    turn: usize,
-    whowon: isize,
+    turn: u8,
+    whowon: i8,
     history: [u8; 9],
-    player: [usize; 2],
+    player: [u16; 2],
 }
