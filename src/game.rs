@@ -2,19 +2,14 @@ use std::fmt;
 
 impl Game {
     pub fn new() -> Self {
-        Self {
+        let mut tmp = Self {
             turn: 0,
+            whowon: 0,
             history: [9; 9],
-            board: [0; 9],
-        }
-    }
-
-    pub fn from(turn: u8, history: [u8; 9], board: [i8; 9]) -> Self {
-        Self {
-            turn,
-            history,
-            board,
-        }
+            player: [0; 2],
+        };
+        tmp.update_whowon();
+        tmp
     }
 
     pub fn history_vec(&self) -> Vec<u8> {
@@ -25,159 +20,126 @@ impl Game {
         self.history
     }
 
-    pub fn board(&self) -> [i8; 9] {
-        self.board
+    pub fn player(&self) -> isize {
+        1 - ((self.turn as isize & 1) << 1)
     }
 
-    pub fn player(&self) -> i8 {
-        1 - ((self.turn as i8 & 1) << 1)
+    pub fn turn(&self) -> usize {
+        self.turn
     }
 
     pub fn pseudo_choose(&self, index: usize) -> bool {
-        index <= 8 && self.board[index] == 0
+        let mask = 1 << index;
+        let occupied = self.player[0] | self.player[1];
+        index <= 8 && occupied & mask == 0
     }
 
     pub fn choose(&mut self, index: usize) -> bool {
-        if 8 < index || self.board[index] != 0 {
+        if !self.pseudo_choose(index) {
             return false;
         }
-        self.board[index] = self.player();
-        self.history[self.turn as usize] = index as u8;
-        self.turn += 1;
+        self.unsafe_choose(index);
         true
     }
 
-    pub fn unsafe_loud_choose(&self, index: usize) -> Self {
-        let mut history = self.history;
-        let mut board = self.board;
-        history[self.turn as usize] = index as u8;
-        board[index] = self.player();
-        Self {
-            turn: self.turn + 1,
-            history,
-            board,
+    pub fn unsafe_choose(&mut self, index: usize) {
+        self.player[(self.turn & 1) as usize] |= 1 << index;
+        self.history[self.turn] = index as u8;
+        self.update_whowon();
+        self.turn += 1;
+    }
+
+    pub fn showfree(&self) -> usize {
+        if !self.is_finished() {
+            !(self.player[0] | self.player[1])
+        } else {
+            0
         }
     }
 
-    pub fn showfree(&self) -> u16 {
-        let mut free = 0;
-        let mut num = 1;
-        for i in 0..9 {
-            if self.board[i] == 0 {
-                free |= num;
-            }
-            num <<= 1;
-        }
-        free
-    }
-
-    pub fn symmshowfree(&self) -> u16 {
+    pub fn symmshowfree(&self) -> usize {
         let mut free = self.showfree();
-        if self.board[0..3] == self.board[6..9] {
+        if self.player[0] >> 6 == 0x7 & self.player[0]
+            && self.player[1] >> 6 == 0x7 & self.player[1]
+        {
             free &= 0x3F
         }
 
-        if self.board[0] == self.board[2]
-            && self.board[3] == self.board[5]
-            && self.board[6] == self.board[8]
+        if (0x124 & self.player[0]) >> 2 == 0x49 & self.player[0]
+            && (0x124 & self.player[1]) >> 2 == 0x49 & self.player[1]
         {
             free &= 0xDB;
         }
 
-        if self.board[1] == self.board[3]
-            && self.board[2] == self.board[6]
-            && self.board[5] == self.board[7]
+        if (self.player[0] & 0x88) >> 2 == self.player[0] & 0x22
+            && (self.player[0] & 0x40) >> 4 == self.player[0] & 0x04
+            && (self.player[1] & 0x88) >> 2 == self.player[1] & 0x22
+            && (self.player[1] & 0x40) >> 4 == self.player[1] & 0x04
         {
             free &= 0x137;
         }
 
-        if self.board[1] == self.board[5]
-            && self.board[3] == self.board[7]
-            && self.board[0] == self.board[8]
+        if (self.player[0] & 0xA0) >> 4 == self.player[0] & 0x0A
+            && (self.player[0] & 0x100) >> 8 == self.player[0] & 0x01
+            && (self.player[1] & 0xA0) >> 4 == self.player[1] & 0x0A
+            && (self.player[1] & 0x100) >> 8 == self.player[1] & 0x01
         {
             free &= 0x5F;
         }
         free
     }
 
-    pub fn whowon(&self) -> i8 {
-        let mut a;
-        let mut b;
-        let mut c = 0;
-        let mut d = 0;
-        for i in 0..3 {
-            a = 0;
-            b = 0;
-            for j in 0..3 {
-                a += self.board[3 * i + j];
-                b += self.board[3 * j + i];
+    fn update_whowon(&mut self) {
+        for (p, s) in self.player.into_iter().zip([1, -1]) {
+            let mut num;
+            num = p;
+            for _ in 0..3 {
+                if 0x07 & num == 0x07 {
+                    self.whowon = s;
+                    return;
+                }
+                num >>= 3;
             }
-            if a < -2 || a > 2 {
-                return a.signum();
+
+            num = p;
+            for _ in 0..3 {
+                if 0x49 & num == 0x49 {
+                    self.whowon = s;
+                    return;
+                }
+                num >>= 1;
             }
-            if b < -2 || b > 2 {
-                return b.signum();
+
+            if 0x111 & p == 0x111 || 0x54 & p == 0x54 {
+                self.whowon = s;
+                return;
             }
-            c += self.board[4 * i];
-            d += self.board[2 + 2 * i];
         }
-        if c < -2 || c > 2 {
-            return c.signum();
-        }
-        if d < -2 || d > 2 {
-            return d.signum();
-        }
-        0
+        self.whowon = 0;
+    }
+
+    pub fn whowon(&self) -> isize {
+        self.whowon
     }
 
     pub fn is_finished(&self) -> bool {
-        8 < self.turn || self.whowon() != 0
-    }
-}
-
-impl From<Vec<usize>> for Game {
-    fn from(history_vec: Vec<usize>) -> Self {
-        let mut history = [9; 9];
-        let mut board = [0; 9];
-        let mut turn = 0;
-        for i in history_vec {
-            history[turn as usize] = i as u8;
-            board[i] = if turn % 2 != 0 { -1 } else { 1 };
-            turn += 1;
-        }
-        Self {
-            turn,
-            history,
-            board,
-        }
-    }
-}
-
-impl From<[u8; 9]> for Game {
-    fn from(history: [u8; 9]) -> Self {
-        let mut board: [i8; 9] = [0; 9];
-        let mut turn = 0;
-        for i in history {
-            if i > 8 {
-                break;
-            }
-            board[i as usize] = if turn % 2 != 0 { -1 } else { 1 };
-            turn += 1;
-        }
-        Self {
-            turn,
-            history,
-            board,
-        }
+        self.whowon() != 0 || 9 == self.turn
     }
 }
 
 impl fmt::Display for Game {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut s = String::new();
+        let mut s = String::with_capacity(11);
         for i in 0..3 {
             for j in 0..3 {
-                s += &ftos(self.board[3 * i + j]).to_string();
+                let mask = 1 << (i * 3 + j);
+                if self.player[0] & mask != 0 {
+                    s += "X";
+                } else if self.player[1] & mask != 0 {
+                    s += "O";
+                } else {
+                    s += ".";
+                }
             }
             s += "\n"
         }
@@ -185,18 +147,10 @@ impl fmt::Display for Game {
     }
 }
 
-fn ftos(field: i8) -> char {
-    match field.signum() {
-        0 => '.',
-        1 => 'X',
-        -1 => 'O',
-        _ => unreachable!(),
-    }
-}
-
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Game {
-    turn: u8,
+    turn: usize,
+    whowon: isize,
     history: [u8; 9],
-    board: [i8; 9],
+    player: [usize; 2],
 }

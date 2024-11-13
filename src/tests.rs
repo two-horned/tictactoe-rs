@@ -10,7 +10,7 @@ fn test_choose() {
     let mut g = Game::new();
     let b = g.choose(0);
     assert_eq!([0, 9, 9, 9, 9, 9, 9, 9, 9], g.history_array());
-    assert_eq!([1, 0, 0, 0, 0, 0, 0, 0, 0], g.board());
+    //assert_eq!([1, 0, 0, 0, 0, 0, 0, 0, 0], g.board());
     assert_eq!(-1, g.player());
     assert_eq!(true, b);
 }

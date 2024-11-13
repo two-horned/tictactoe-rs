@@ -4,7 +4,7 @@ use std::time::Instant;
 use tictactoe::evaluater::eval;
 use tictactoe::game::Game;
 
-fn player() -> io::Result<i8> {
+fn player() -> io::Result<isize> {
     let mut e;
     loop {
         print!("Enter player [1,2]: ");
@@ -20,7 +20,7 @@ fn player() -> io::Result<i8> {
     }
 }
 
-fn botting() -> io::Result<i8> {
+fn botting() -> io::Result<isize> {
     let mut e;
     loop {
         print!("Play with bot? [y,N]: ");
