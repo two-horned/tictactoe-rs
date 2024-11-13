@@ -1,64 +1,26 @@
 use crate::game::Game;
-use std::collections::HashMap;
 
-impl Evaluater {
-    pub fn new() -> Evaluater {
-        Self {
-            evaluated: HashMap::new(),
+pub fn eval(game: Game) -> Game {
+    let mut free = game.symmshowfree();
+    let mut best: Option<Game> = None;
+    let player = game.player();
+
+    for i in 0..9 {
+        if free & 1 != 0 {
+            let n = eval(game.loud_choose(i));
+            match best {
+                Some(x) if n.whowon() * player <= x.whowon() * player => (),
+                _ => best = Some(n),
+            }
+            if n.whowon() == game.player() {
+                break;
+            }
         }
+        free >>= 1;
     }
-
-    fn minmax(&mut self, player: i8, list: &Vec<Game>) -> Game {
-        let mut n = self.eval(list.first().unwrap());
-        let mut g;
-        if n.whowon() == player {
-            return n;
-        }
-        for i in list.iter().skip(1) {
-            g = self.eval(i);
-            if g.whowon() == player {
-                return g;
-            }
-            if n.whowon() * player < g.whowon() * player {
-                n = g;
-            }
-        }
-        n
-    }
-
-    pub fn eval(&mut self, game: &Game) -> Game {
-        if game.is_finished() {
-            return game.clone();
-        }
-        let board = game.board();
-        if self.evaluated.contains_key(&board) {
-            let n = self.evaluated.get(&board).unwrap();
-            let nh = n.history_array();
-            let mut gh = game.history_array();
-            for i in 0..9 {
-                if gh[i] > 8 {
-                    gh[i] = nh[i]
-                }
-            }
-            return Game::from(9, gh, n.board());
-        }
-        let free = game.symmshowfree();
-        let mut v = vec![];
-        let mut g;
-        for i in free {
-            g = game.loud_choose(i);
-            if g.whowon() != 0 {
-                self.evaluated.insert(board, g);
-                return g;
-            }
-            v.push(g);
-        }
-        g = self.minmax(game.player(), &v);
-        self.evaluated.insert(board, g);
-        return g;
-    }
-}
-
-pub struct Evaluater {
-    evaluated: HashMap<[i8; 9], Game>,
+    let g = match best {
+        Some(x) => x,
+        _ => game,
+    };
+    g
 }

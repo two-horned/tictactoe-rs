@@ -1,7 +1,7 @@
 use std::env::args;
 use std::io::{self, Write};
 use std::time::Instant;
-use tictactoe::evaluater::Evaluater;
+use tictactoe::evaluater::eval;
 use tictactoe::game::Game;
 
 fn player() -> io::Result<i8> {
@@ -61,23 +61,22 @@ fn player_play(game: &Game) -> io::Result<usize> {
     Ok(r)
 }
 
-fn bot_play(game: &Game, evaluater: &mut Evaluater) -> io::Result<usize> {
+fn bot_play(game: Game) -> io::Result<usize> {
     println!("Turn of bot");
     let gh = game.history_array();
-    let nh = evaluater.eval(game).history_array();
+    let nh = eval(game).history_array();
     for i in 0..9 {
         if gh[i] == 9 {
-            return Ok(nh[i]);
+            return Ok(nh[i] as usize);
         }
     }
     unreachable!()
 }
 
 fn bench() {
-    let mut evaluater = Evaluater::new();
     let g = Game::new();
     let s = Instant::now();
-    evaluater.eval(&g);
+    eval(g);
     let s = s.elapsed();
     println!(
         "Time needed to evaluate whole game tree: {}µs",
@@ -100,7 +99,6 @@ fn main() -> io::Result<()> {
         }
     }
 
-    let mut evaluater = Evaluater::new();
     println!("Enter 'q' to quit");
 
     let p = player()?;
@@ -124,7 +122,7 @@ fn main() -> io::Result<()> {
                 return Ok(bye());
             };
         } else {
-            e = bot_play(&g, &mut evaluater)?;
+            e = bot_play(g)?;
         }
         println!("Choice is: {}", e + 1);
         g.choose(e);

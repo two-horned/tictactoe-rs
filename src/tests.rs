@@ -1,8 +1,8 @@
-use crate::{evaluater::Evaluater, game::Game};
+use crate::{evaluater::eval, game::Game};
 
 #[test]
 fn test_symmshowfree() {
-    assert_eq!(vec![0, 1, 4], Game::new().symmshowfree());
+    assert_eq!(0b10011, Game::new().symmshowfree());
 }
 
 #[test]
@@ -62,6 +62,6 @@ fn test_finished2() {
 
 #[test]
 fn final_test() {
-    let g = Evaluater::new().eval(&Game::new());
+    let g = eval(Game::new());
     assert_eq!([0, 4, 1, 2, 6, 3, 5, 7, 8], g.history_array());
 }

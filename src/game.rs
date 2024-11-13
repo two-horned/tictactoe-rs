@@ -9,7 +9,7 @@ impl Game {
         }
     }
 
-    pub fn from(turn: usize, history: [usize; 9], board: [i8; 9]) -> Self {
+    pub fn from(turn: u8, history: [u8; 9], board: [i8; 9]) -> Self {
         Self {
             turn,
             history,
@@ -17,7 +17,20 @@ impl Game {
         }
     }
 
-    pub fn set_history(&mut self, history: [usize; 9]) {
+    pub fn hash_board(&self) -> usize {
+        let mut hash = 0;
+        for i in 0..9 {
+            match self.board[i] {
+                1 => hash |= 1,
+                -1 => hash |= 2,
+                _ => (),
+            }
+            hash <<= 2;
+        }
+        hash
+    }
+
+    pub fn set_history(&mut self, history: [u8; 9]) {
         self.history = history;
     }
 
@@ -25,20 +38,16 @@ impl Game {
         self.board = board;
     }
 
-    pub fn history_vec(&self) -> Vec<usize> {
-        let mut v = vec![];
-        for i in 0..self.turn {
-            v.push(self.history[i]);
-        }
-        v
+    pub fn history_vec(&self) -> Vec<u8> {
+        self.history.into_iter().filter(|&x| x < 9).collect()
     }
 
-    pub fn history_array(&self) -> [usize; 9] {
-        self.history.clone()
+    pub fn history_array(&self) -> [u8; 9] {
+        self.history
     }
 
     pub fn board(&self) -> [i8; 9] {
-        self.board.clone()
+        self.board
     }
 
     pub fn board_2d(&self) -> [[i8; 3]; 3] {
@@ -65,7 +74,7 @@ impl Game {
             return false;
         }
         self.board[index] = self.player();
-        self.history[self.turn] = index;
+        self.history[self.turn as usize] = index as u8;
         self.turn += 1;
         true
     }
@@ -76,7 +85,7 @@ impl Game {
         }
         let mut history = self.history;
         let mut board = self.board;
-        history[self.turn] = index;
+        history[self.turn as usize] = index as u8;
         board[index] = self.player();
         Self {
             turn: self.turn + 1,
@@ -85,43 +94,45 @@ impl Game {
         }
     }
 
-    pub fn showfree(&self) -> Vec<usize> {
-        let mut v = vec![];
+    pub fn showfree(&self) -> u16 {
+        let mut free = 0;
+        let mut num = 1;
         for i in 0..9 {
             if self.board[i] == 0 {
-                v.push(i)
+                free |= num;
             }
+            num <<= 1;
         }
-        v
+        free
     }
 
-    pub fn symmshowfree(&self) -> Vec<usize> {
-        let mut v = self.showfree().to_vec();
+    pub fn symmshowfree(&self) -> u16 {
+        let mut free = self.showfree();
         if self.board[0..3] == self.board[6..9] {
-            v.retain(|&c| c < 6);
+            free &= 0x3F
         }
 
         if self.board[0] == self.board[2]
             && self.board[3] == self.board[5]
             && self.board[6] == self.board[8]
         {
-            v.retain(|&c| (c + 1) % 3 != 0);
+            free &= 0xDB;
         }
 
         if self.board[1] == self.board[3]
             && self.board[2] == self.board[6]
             && self.board[5] == self.board[7]
         {
-            v.retain(|&c| (c != 3) && (c != 6) & (c != 7));
+            free &= 0x137;
         }
 
         if self.board[1] == self.board[5]
             && self.board[3] == self.board[7]
             && self.board[0] == self.board[8]
         {
-            v.retain(|&c| (c != 5) && (c != 7) & (c != 8));
+            free &= 0x5F;
         }
-        v
+        free
     }
 
     pub fn whowon(&self) -> i8 {
@@ -161,11 +172,11 @@ impl Game {
 
 impl From<Vec<usize>> for Game {
     fn from(history_vec: Vec<usize>) -> Self {
-        let mut history: [usize; 9] = [9; 9];
-        let mut board: [i8; 9] = [0; 9];
+        let mut history = [9; 9];
+        let mut board = [0; 9];
         let mut turn = 0;
         for i in history_vec {
-            history[turn] = i;
+            history[turn as usize] = i as u8;
             board[i] = if turn % 2 != 0 { -1 } else { 1 };
             turn += 1;
         }
@@ -177,15 +188,15 @@ impl From<Vec<usize>> for Game {
     }
 }
 
-impl From<[usize; 9]> for Game {
-    fn from(history: [usize; 9]) -> Self {
+impl From<[u8; 9]> for Game {
+    fn from(history: [u8; 9]) -> Self {
         let mut board: [i8; 9] = [0; 9];
         let mut turn = 0;
         for i in history {
             if i > 8 {
                 break;
             }
-            board[i] = if turn % 2 != 0 { -1 } else { 1 };
+            board[i as usize] = if turn % 2 != 0 { -1 } else { 1 };
             turn += 1;
         }
         Self {
@@ -220,7 +231,7 @@ fn ftos(field: i8) -> char {
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Game {
-    turn: usize,
-    history: [usize; 9],
+    turn: u8,
+    history: [u8; 9],
     board: [i8; 9],
 }
