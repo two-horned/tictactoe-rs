@@ -2,26 +2,15 @@ use std::fmt;
 
 impl Game {
     pub fn new() -> Self {
-        let mut tmp = Self {
+        Self {
             turn: 0,
             whowon: 0,
-            history: [9; 9],
             player: [0; 2],
-        };
-        tmp.update_whowon();
-        tmp
-    }
-
-    pub fn history_vec(&self) -> Vec<u8> {
-        self.history.into_iter().filter(|&x| x < 9).collect()
-    }
-
-    pub fn history_array(&self) -> [u8; 9] {
-        self.history
+        }
     }
 
     pub fn player(&self) -> isize {
-        1 - ((self.turn as isize & 1) << 1)
+        1 - ((self.turn as isize) << 1)
     }
 
     pub fn turn(&self) -> usize {
@@ -43,22 +32,29 @@ impl Game {
     }
 
     pub fn unsafe_choose(&mut self, index: usize) {
-        self.player[(self.turn & 1) as usize] |= 1 << index;
-        self.history[self.turn as usize] = index as u8;
+        self.player[self.turn as usize] |= 1 << index;
+        self.turn = 1 - self.turn;
         self.update_whowon();
-        self.turn += 1;
+    }
+
+    pub fn unsafe_unchoose(&mut self, index: usize) {
+        self.turn = 1 - self.turn;
+        self.player[self.turn as usize] ^= 1 << index;
+        self.update_whowon();
     }
 
     pub fn showfree(&self) -> u16 {
-        if !self.is_finished() {
-            !(self.player[0] | self.player[1])
-        } else {
-            0
+        if self.is_finished() {
+            return 0;
         }
+        0x1FF & !(self.player[0] | self.player[1])
     }
 
     pub fn symmshowfree(&self) -> u16 {
-        let mut free = self.showfree();
+        if self.is_finished() {
+            return 0;
+        }
+        let mut free = 0x1FF & !(self.player[0] | self.player[1]);
         if self.player[0] >> 6 == 0x7 & self.player[0]
             && self.player[1] >> 6 == 0x7 & self.player[1]
         {
@@ -86,31 +82,31 @@ impl Game {
         {
             free &= 0x5F;
         }
+
         free
     }
 
     fn update_whowon(&mut self) {
         for (p, s) in self.player.into_iter().zip([1, -1]) {
-            let mut num;
-            num = p;
+            let mut num = p;
             for _ in 0..3 {
-                if 0x07 & num == 0x07 {
+                if test(num, 7) {
                     self.whowon = s;
                     return;
                 }
                 num >>= 3;
             }
 
-            num = p;
+            let mut num = p;
             for _ in 0..3 {
-                if 0x49 & num == 0x49 {
+                if test(num, 0x49) {
                     self.whowon = s;
                     return;
                 }
                 num >>= 1;
             }
 
-            if 0x111 & p == 0x111 || 0x54 & p == 0x54 {
+            if test(p, 0x111) || test(p, 0x54) {
                 self.whowon = s;
                 return;
             }
@@ -123,7 +119,7 @@ impl Game {
     }
 
     pub fn is_finished(&self) -> bool {
-        self.whowon() != 0 || 9 == self.turn
+        self.whowon() != 0 || test(self.player[0] | self.player[1], 0x1FF)
     }
 }
 
@@ -147,10 +143,13 @@ impl fmt::Display for Game {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+fn test(num: u16, mask: u16) -> bool {
+    num & mask == mask
+}
+
+#[derive(Debug)]
 pub struct Game {
     turn: u8,
     whowon: i8,
-    history: [u8; 9],
     player: [u16; 2],
 }

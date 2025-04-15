@@ -61,22 +61,15 @@ fn player_play(game: &Game) -> io::Result<usize> {
     Ok(r)
 }
 
-fn bot_play(game: Game) -> io::Result<usize> {
+fn bot_play(game: &mut Game) -> usize {
     println!("Turn of bot");
-    let gh = game.history_array();
-    let nh = eval(game).history_array();
-    for i in 0..9 {
-        if gh[i] == 9 {
-            return Ok(nh[i] as usize);
-        }
-    }
-    unreachable!()
+    eval(game).action
 }
 
 fn bench() {
-    let g = Game::new();
+    let mut g = Game::new();
     let s = Instant::now();
-    eval(g);
+    eval(&mut g);
     let s = s.elapsed();
     println!(
         "Time needed to evaluate whole game tree: {}µs",
@@ -122,7 +115,7 @@ fn main() -> io::Result<()> {
                 return Ok(bye());
             };
         } else {
-            e = bot_play(g)?;
+            e = bot_play(&mut g);
         }
         println!("Choice is: {}", e + 1);
         g.choose(e);

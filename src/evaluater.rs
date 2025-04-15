@@ -1,28 +1,35 @@
 use crate::game::Game;
 
-pub fn eval(game: Game) -> Game {
+pub fn eval(game: &mut Game) -> EvalRes {
     let mut free = game.symmshowfree();
-    let mut best: Option<Game> = None;
     let player = game.player();
+    let mut best = EvalRes {
+        score: game.whowon(),
+        action: 9,
+    };
 
-    for i in 0..9 {
-        if free & 1 != 0 {
-            let mut n = game;
-            n.unsafe_choose(i);
-            let n = eval(n);
-            match best {
-                Some(x) if n.whowon() * player <= x.whowon() * player => (),
-                _ => best = Some(n),
-            }
-            if n.whowon() == game.player() {
-                break;
+    while free != 0 {
+        let i = free.trailing_zeros() as usize;
+        game.unsafe_choose(i);
+        let n = eval(game);
+        game.unsafe_unchoose(i);
+
+        if best.action > 8 || best.score * player < n.score * player {
+            best = EvalRes {
+                score: n.score,
+                action: i,
             }
         }
-        free >>= 1;
+        if n.score == player {
+            break;
+        }
+        free &= free - 1;
     }
-    let g = match best {
-        Some(x) => x,
-        _ => game,
-    };
-    g
+    best
+}
+
+#[derive(Clone, Copy)]
+pub struct EvalRes {
+    pub score: isize,
+    pub action: usize,
 }
